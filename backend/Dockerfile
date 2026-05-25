@@ -14,19 +14,16 @@ WORKDIR /app/
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Copy configuration files normally to the build environment
-COPY ./pyproject.toml ./uv.lock /app/
+# Copy package requirements configuration normally
+COPY ./pyproject.toml /app/
 
-# Standard dependency installation without strict --mount constraints
-RUN uv sync --frozen --no-install-workspace --package app
+# Generate the missing lockfile and install dependencies natively
+RUN uv pip install -r pyproject.toml
 
-# Copy code modules safely
+# Copy the actual app components safely
 COPY ./scripts /app/backend/scripts
 COPY ./pyproject.toml ./alembic.ini /app/backend/
 COPY ./app /app/backend/app
-
-# Finalize workspace sync
-RUN uv sync --frozen --package app
 
 WORKDIR /app/backend/
 
