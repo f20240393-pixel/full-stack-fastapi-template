@@ -1,24 +1,17 @@
-FROM python:3.10
+FROM python:3.10-slim
 
 ENV PYTHONUNBUFFERED=1
 
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:0.9.26 /uv /uvx /bin/
 
-# Compile bytecode
-ENV UV_COMPILE_BYTECODE=1
-ENV UV_LINK_MODE=copy
-
 WORKDIR /app/
-
-# Place executables in the environment at the front of the path
-ENV PATH="/app/.venv/bin:$PATH"
 
 # Copy package requirements configuration normally
 COPY ./pyproject.toml /app/
 
-# Generate the missing lockfile and install dependencies natively
-RUN uv pip install -r pyproject.toml
+# Install the dependencies directly into the container system layer
+RUN uv pip install --system -r pyproject.toml
 
 # Copy the actual app components safely
 COPY ./scripts /app/backend/scripts
